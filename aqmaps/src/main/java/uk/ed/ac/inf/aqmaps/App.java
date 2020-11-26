@@ -22,7 +22,12 @@ public class App {
     public static void main( String[] args ) throws IOException, InterruptedException{
     	
     	//Makes a webserver at specified port.
-    	WebServer web = new WebServer(Integer.parseInt(args[6]));
+    	//WebServer web = new WebServer(Integer.parseInt(args[6]));
+    	
+    	Drone drone = new Drone(Point.fromLngLat(-3.1847428, 55.945936), 150, "slips.mass.bacon");
+    	System.out.print(drone.getPosition());
+    	drone.move(90);
+    	System.out.print(drone.getPosition());
     	
     }
     
