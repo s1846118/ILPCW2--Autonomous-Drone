@@ -21,16 +21,14 @@ public class Drone {
 	//Important attributes to define drones position and moves left. 
 	private Point position;
 	private int moves;
-	private String wordsLoc;
 	
 	//I chose this to be public so I didn't have to make a getter for it.
 	public final Point startingPosition;
 	
 	//Constructor for our drone class.
-	public Drone(Point startingPosition, int moves, String wordsLoc) {		
+	public Drone(Point startingPosition, int moves) {		
 		this.position = startingPosition;
 		this.moves = moves;
-		this.wordsLoc = wordsLoc;
 		this.startingPosition = startingPosition;
 	}	
 	public Point getPosition() {
@@ -41,9 +39,6 @@ public class Drone {
 		return this.moves;
 	}
 	
-	public String getWords() {
-		return this.wordsLoc;
-	}
 	//Move must be of 0.0003 degrees. Direction is an int since it must be a multiple of ten 
 	public void move(int direction) {
 		
