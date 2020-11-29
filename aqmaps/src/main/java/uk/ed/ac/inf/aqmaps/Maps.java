@@ -5,7 +5,7 @@ public class Maps {
 	//W3W location
 	String location;
 	//Battery level in range [0,100]
-	String battery;
+	double battery;
 	//Air quality reading in range [0,256]
 	String reading;
 }

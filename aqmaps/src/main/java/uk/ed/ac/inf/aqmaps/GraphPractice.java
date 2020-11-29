@@ -11,7 +11,7 @@ import com.mapbox.geojson.*;
 public class GraphPractice {
 	
 	public static void main(String[] args) {
-
+		/*
 		DefaultUndirectedWeightedGraph<Sensor, DefaultEdge> graph = new DefaultUndirectedWeightedGraph(DefaultEdge.class);
 		
 		var sensor1 = new Sensor("a", "20", "30", Point.fromLngLat(52, -3.323));
@@ -62,7 +62,7 @@ public class GraphPractice {
 		System.out.print("\n" + tour.getWeight());
 		
 		
-		
+		*/
 
 	}
 }

@@ -23,15 +23,16 @@ public class Sensor {
 	//W3W location
 	String location;
 	//Battery level
-	String battery;
+	double battery;
 	//Air quality reading
 	String reading;
 	//Centre point of sensor which our drone is going to aim for.
 	Point lnglat;
 	
-	public Sensor(String location, String battery, String reading, Point lnglat) {
+	public Sensor(String location, double battery, String reading, Point lnglat) {
 		this.location = location;
 		this.battery = battery;
+		this.reading = reading;
 		this.lnglat = lnglat;		
 	}
 	
