@@ -21,6 +21,8 @@ public class Drone {
 	//Important attributes to define drones position and moves left. 
 	private Point position;
 	private int moves;
+	//Each line here will represent one line in 'flightpath.txt'.
+	private String[] flightLog;
 	
 	//I chose this to be public so I didn't have to make a getter for it.
 	public final Point startingPosition;
@@ -80,6 +82,8 @@ public class Drone {
 		}
 		
 		this.position = Point.fromLngLat(lng, lat);
+		//This uses up one move. 
+		this.moves -=1;
 	}
 	
 }

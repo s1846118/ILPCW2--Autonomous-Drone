@@ -47,7 +47,7 @@ public class WebServer {
     	return words;
     }
 	
-    public ArrayList<Polygon> getBuiding(String path) throws IOException, InterruptedException {
+    public ArrayList<Polygon> getBuiding() throws IOException, InterruptedException {
     	
     	//Fethces the geo-json file for the no-fly zones from web.
     	var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:" + this.port + "/buildings/no-fly-zones.geojson")).build();  	
@@ -59,7 +59,7 @@ public class WebServer {
     	
     	//Below two steps create geojson string into list of features.
     	FeatureCollection fc = FeatureCollection.fromJson(geoJsonString);  	
-    	List<Feature> fcList = fc.features();
+    	var fcList = fc.features();
   
     	//Lines 62-72 downcast the Geometry elements in 'fcList' to corresponding Polygon objects in 'noFlyZones'
     	var noFlyZones = new ArrayList();
@@ -80,7 +80,7 @@ public class WebServer {
     public ArrayList<Maps> getMaps(String path) throws IOException, InterruptedException {
     	
     	//Fethces the geo-json file for the no-fly zones from web.
-    	var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:" + this.port + "/Maps/" + path + "air-quality-data.json")).build();  	
+    	var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:" + this.port + "/maps/" + path + "air-quality-data.json")).build();  	
     	var response = client.send(request, BodyHandlers.ofString());   	
     	response.statusCode();
     	
