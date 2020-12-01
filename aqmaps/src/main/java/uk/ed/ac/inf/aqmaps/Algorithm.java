@@ -28,14 +28,15 @@ import java.util.*;
 public class Algorithm {
 	
 	//Drone for measuring aq sensors and list of sensors we want to visit
-	private Drone drone;
 	private ArrayList<Sensor> sensors;
 	private ArrayList<Polygon> noFlyZones;
+	public Drone drone;
+	public List<Point> droneLine = new ArrayList<Point>();;
 	
 	public Algorithm(Drone drone, ArrayList<Sensor> sensors, ArrayList<Polygon> noFlyZone) {
-		this.drone = drone;
 		this.sensors = sensors;
 		this.noFlyZones = noFlyZone;
+		this.drone = drone;
 	}
 	
 	/*
@@ -101,8 +102,10 @@ public class Algorithm {
 	        	Point2D corner2 = new Point2D.Double(corners.get(i+1).longitude(), corners.get(i+1).latitude());
 	        	//Make the edge in 2D space
 	        	Line2D edge = new Line2D.Double(corner1, corner2);       	
-	        	//Now do the big check that we have all been waiting for! Does the line intersect? Does it??!!??
-	        	intersects = vLine.intersectsLine(edge);
+	        	//Now do the big check that we have all been waiting for! Does the line intersect? Does it??!!??       	
+	        	if(vLine.intersectsLine(edge) || edge.intersectsLine(vLine)) {
+	        		intersects = true; 
+	        	}
 	    	}
     	}
     	return intersects;
@@ -122,11 +125,138 @@ public class Algorithm {
 		var path = tour.getVertexList();
 		//Remove the last element as it is a duplicate of the first. 
 		int size = path.size();
-		path.remove(size-1);
-		
+		//path.remove(size-1);
+
 				
 		return tour;
 	}
+	
+	/*
+	 * Step 3 - This is the biggest step which involves us actually moving the drone around the map. 
+	 */
+	//This function finds the nearest sensor to the starting location to start our journey.
+	public int nearestSensor(Point startingLoc, List<Sensor> path) {
+		//Euclidean distances from each sensor to the starting position.
+		ArrayList<Double> distances = new ArrayList<>();
+		List<Double> pt1 = startingLoc.coordinates();
+		
+		//Find distance to each sensor. 
+		for(Sensor sensor : path) {
+			List<Double> pt2 = sensor.lnglat.coordinates();
+			double dist = Point2D.distance(pt1.get(0), pt1.get(1), pt2.get(0), pt2.get(1));
+			distances.add(dist);			
+		}
+		//This gives us the index of the sensor to move to first.
+		double min = Collections.min(distances);
+		int index = distances.indexOf(min);
+		
+		return index;
+	}
+	
+	//This function finds the exact angle from the drone to the sensor
+	public double findAngle(Point dronePos, Point sensorPos) {
+		double y1 = dronePos.latitude();
+		double x1 = dronePos.longitude();
+		
+		double y2 = sensorPos.latitude();
+		double x2 = sensorPos.longitude();
+		
+		//initialise x and y
+		double x = Math.abs(x1 - x2);
+		double y = Math.abs(y1 - y2); 
+		
+		//Are we on the same latitude?
+		if(y1 == y2) {
+			if(x1 < x2) {
+				//Sensor must be exactly east.
+				return 0;
+			}
+			if(x1 > x2) {
+				//Sensor must be exactly west.
+				return 180;
+			}
+		}
+		//Are we on the same longitude
+		if(x1 == x2) {
+			//Sensor must be exactly north
+			if(y1 < y2) {
+				return 90;
+			}
+			//Sensor must be exactly south
+			if(y2 < y1) {
+				return 270;
+			}
+		}
+		//Quadrant 1
+		if((x1 < x2) & (y1 < y2)) {
+			//System.out.println("Quadrant 1");
+			return Math.atan2(y, x) * 180 / Math.PI;
+		}
+		//Quadrant 2
+		if((x2 < x1) & (y1 < y2)) {
+			//System.out.println(Math.atan2(y, x) * 180 / Math.PI);
+			return 180 - (Math.atan2(y, x) * 180 / Math.PI);
+		}
+		//Quadrant 3
+		if((x2 < x1) & (y2 < y1)) {
+			return 180 + (Math.atan2(y, x) * 180 / Math.PI);
+		}
+		//Quadrant 4
+		else{
+			//System.out.println("Quadrant 4");
+			return 360 - (Math.atan2(y, x) * 180 / Math.PI);
+		}
+	}
+	//This function is responsible for moving the drone around the desired path by making small repetative moves. 
+	public void fly(List<Sensor> path) throws Exception {
+		//This gives us the index of the sensor we should go to first. Because it is closest. 
+		int first_index = nearestSensor(drone.startingPosition, path);
+		int move_num = 0;
+		//Initialisation 
+		String w3w = "";
+		//We want to loop through (and connect to) each sensor in the path. We do not necessarily start at path[0] so we use mod function.
+		//This loop is responsible for moving through every sensor. We do not make it out the loop without error otherwise. 
+		for(int i = 0; i < path.size(); i++) {
+			Sensor next_sensor = path.get((first_index + i) % (path.size()));
+			
+			//These are the repetitive moving steps we make to get to the desired location. 
+			//We make these steps until we reach the location. 
+			while(!(drone.isConnected(next_sensor, drone.getPosition()))){
+				
+				//TESTIING
+				if(drone.getMoves() <= 0) {break;}
+				
+				
+				//Get exact angle to the sensor
+				double angle = findAngle(drone.getPosition(), next_sensor.lnglat);
+				//Round this to the nearest ten
+				double angle_nearest_ten = Math.round(angle/10.0)*10;
+				//Move at this angle
+				Point prev_loc = drone.getPosition();
+				
+				//Adding to the testing line string to see our drones horrific path
+				droneLine.add(prev_loc);
+				
+				drone.move(angle_nearest_ten);
+				Point curr_loc = drone.getPosition();
+				
+				//Adding to line string for testing
+				droneLine.add(curr_loc);
+				
+				//Made a move
+				move_num+=1;
+				//After our move the drone may well be connected to a sensor. We must check this
+				boolean connected_now = drone.isConnected(next_sensor, drone.getPosition());
+				if(connected_now) {w3w = next_sensor.location;}
+				else {w3w = "null";}
+				//Lets now add this to the flight path
+				drone.addFlightPath(move_num, prev_loc, angle_nearest_ten, curr_loc, w3w);
+				
+			}
+			//System.out.println(i);
+		}
+	}
+	
 	
 }
 
