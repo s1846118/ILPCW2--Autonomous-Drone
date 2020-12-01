@@ -39,6 +39,20 @@ public class Algorithm {
 		this.drone = drone;
 	}
 	
+	//Below we define getters for all of our needed global variables
+	public ArrayList<Sensor> getSensors(){
+		return this.sensors;
+	}
+	
+	public ArrayList<Polygon> getZones(){
+		return this.noFlyZones;
+	}
+	
+	public Drone getDrone() {
+		return this.drone;
+	}
+	
+	
 	/*
 	 * Step 1 - Creating the graph and assigning weighted edges either Euclidean distance or infinity. 
 	 * This step uses the 'doesIntersect' function as seen under the graph making function. We may use this in other parts of out project.
@@ -223,10 +237,6 @@ public class Algorithm {
 			//We make these steps until we reach the location. 
 			while(!(drone.isConnected(next_sensor, drone.getPosition()))){
 				
-				//TESTIING
-				if(drone.getMoves() <= 0) {break;}
-				
-				
 				//Get exact angle to the sensor
 				double angle = findAngle(drone.getPosition(), next_sensor.lnglat);
 				//Round this to the nearest ten
@@ -253,11 +263,8 @@ public class Algorithm {
 				drone.addFlightPath(move_num, prev_loc, angle_nearest_ten, curr_loc, w3w);
 				
 			}
-			//System.out.println(i);
 		}
-	}
-	
-	
+	}	
 }
 
 

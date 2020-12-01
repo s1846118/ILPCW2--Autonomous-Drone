@@ -39,7 +39,7 @@ public class App {
     	WebServer web = new WebServer(Integer.parseInt(args[6]));
     	
     	//Step 2 - Collect the relevant files. No fly zones and maps file for the given day. Reminder argument goes like "YEAR/MONTH/DAY/"
-    	String path_maps = args[2] + "/" + args[1] + "/" + args[0] + "/";
+    	var path_maps = args[2] + "/" + args[1] + "/" + args[0] + "/";
     	var maps = web.getMaps(path_maps); 	   	
     	var buildings = web.getBuiding();
     	
@@ -47,16 +47,16 @@ public class App {
     	var sensors = App.getSensors(maps, web);
     	//Step 4 - Create drone object with 150 moves and starting location specified in arguments 
     	int moves = 150;
-    	Point startingLoc = Point.fromLngLat(Double.parseDouble(args[4]), Double.parseDouble(args[3]));
-    	Drone drone = new Drone(startingLoc, moves);
+    	var startingLoc = Point.fromLngLat(Double.parseDouble(args[4]), Double.parseDouble(args[3]));
+    	var drone = new Drone(startingLoc, moves);
     	
     	//Step 5 - Call the algorithm class passing our drone in starting state and list of sensors to visit on given day. Step 5 includes all subproblems relating to the algorithm.
-    	Algorithm algo = new Algorithm(drone, sensors, buildings);
+    	var algo = new Algorithm(drone, sensors, buildings);
     	//Step 5b - Create the weighted graph to find path. 
     	DefaultUndirectedWeightedGraph<Sensor, DefaultEdge> graph = algo.makeGraph(sensors);
     	//Step 5c - Get the order in which we will visit the sensors. 
     	GraphPath<Sensor, DefaultEdge> gPath = algo.getPath(graph);
-    	List<Sensor> path = gPath.getVertexList();
+    	var path = gPath.getVertexList();
     	//Step 5d - Call the algorithms move method which will move the drone around the maps connecting to nodes and returned at end state.
     	algo.fly(path); 
     	
@@ -72,7 +72,7 @@ public class App {
     	
     	//Make geojson string. Can ignore this for now and put it in some function or something later on. 
     	ArrayList<Feature> pts = new ArrayList<>();
-    	ArrayList<Point> listPts = new ArrayList<>();
+    	//ArrayList<Point> listPts = new ArrayList<>();
     	
     	//Line string representing the drones path. This will be added to the feature collection pts.
     	List<Point> listPtsDrone = algo.droneLine;
@@ -87,7 +87,7 @@ public class App {
     	for(Sensor sensor : path) {
 
     		//We will plot this in the geojson.io it is the desired path 
-    		listPts.add(sensor.lnglat);    		
+    		//listPts.add(sensor.lnglat);    		
     		
     		Point point = sensor.lnglat;
     		//Cast sensor to geometry 
@@ -214,10 +214,10 @@ public class App {
     	
 		
     	//Line string to be added to feature collection below 
-    	LineString lineStr = LineString.fromLngLats(listPts);
-		Geometry lineStringGeo = (Geometry)lineStr;
-    	Feature fLnStr = Feature.fromGeometry(lineStringGeo);
-    	pts.add(fLnStr);
+    	//LineString lineStr = LineString.fromLngLats(listPts);
+		//Geometry lineStringGeo = (Geometry)lineStr;
+    	//Feature fLnStr = Feature.fromGeometry(lineStringGeo);
+    	//pts.add(fLnStr);
     	
     	//Create geojson file.
     	FeatureCollection fc = FeatureCollection.fromFeatures(pts);

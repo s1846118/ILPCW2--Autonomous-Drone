@@ -73,29 +73,7 @@ public class Drone {
 		}
 		lng = curr_lng + lng_change;
 		lat = curr_lat + lat_change;
-		/*
-		//We must decide if we are increasing/decreasing the lng and lat depending on which direction we move. 
-		//Top right quadrant, lng decreases and lat increases
-		if(direction >= 0 && direction <= 90) {
-			lng = curr_lng - lng_change;
-			lat = curr_lat + lat_change;
-		}
-		//Top left quadrant, lng increases, lat increases
-		if(direction <= 180 && direction >= 90) {
-			lng = curr_lng + lng_change;
-			lat = curr_lat + lat_change;
-		}
-		//Bottom left quadrant, lng increases, lat decreases
-		if(direction <= 270 && direction >= 180) {
-			lng = curr_lng + lng_change;
-			lat = curr_lat - lat_change;
-		}
-		//Bottom right quadrant, lng decreases, lat decreases
-		if(direction >= 270 && direction <= 350) {
-			lng = curr_lng - lng_change;
-			lat = curr_lat - lat_change; 
-		}
-		*/
+		//Change drone position
 		this.position = Point.fromLngLat(lng, lat);
 		//This uses up one move. 
 		this.moves -=1;
@@ -119,11 +97,11 @@ public class Drone {
 		String loc = "" + prev_loc.longitude() + "," + prev_loc.latitude() + ","; 
 		String angle = "" + angle_nearest_ten + ",";
 		String loc_ = "" + curr_loc.longitude() + "," + curr_loc.latitude() + ",";
-		String w3w = connected;
+		String w3w = connected + "\n";
 		
 		String line = move + loc + angle + loc_ + w3w;
 		
-		System.out.println(line);
+		//System.out.println(line);
 		
 		flightLog.add(line);
 	}
