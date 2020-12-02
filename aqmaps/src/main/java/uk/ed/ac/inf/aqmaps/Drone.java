@@ -87,7 +87,7 @@ public class Drone {
 		double range = Point2D.distance(pt1.get(0), pt1.get(1), pt2.get(0), pt2.get(1));
 		
 		//Connected or not connected that is the question.
-		if(range <= 0.0002) {return true;}
+		if(range <= 0.00002) {return true;}
 		else {return false;}
 	}
 	
