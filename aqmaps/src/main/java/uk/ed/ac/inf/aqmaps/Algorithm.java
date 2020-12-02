@@ -52,24 +52,34 @@ public class Algorithm {
 		return this.drone;
 	}
 	
+	//Note this should only be used when we know we are going to find a sensor we are looking for. 
+	public Sensor getSensor(Point location, List<Sensor> sensors) throws Exception {
+		for(Sensor sensor : sensors) {
+			if(location.latitude() == sensor.lnglat.latitude() & location.longitude() == sensor.lnglat.longitude()){
+				return sensor;
+			}	
+		}
+		return new Sensor("NULL", 0.0, "NULL", Point.fromLngLat(0.0, 0.0));
+	}
+	
 	
 	/*
 	 * Step 1 - Creating the graph and assigning weighted edges either Euclidean distance or infinity. 
 	 * This step uses the 'doesIntersect' function as seen under the graph making function. We may use this in other parts of out project.
 	 */
-	public DefaultUndirectedWeightedGraph<Sensor, DefaultEdge> makeGraph(ArrayList<Sensor> sensors){
+	public DefaultUndirectedWeightedGraph<Point, DefaultEdge> makeGraph(ArrayList<Point> path){
 		
 		//The graph we will use
-		DefaultUndirectedWeightedGraph<Sensor, DefaultEdge> graph = new DefaultUndirectedWeightedGraph(DefaultEdge.class);
+		DefaultUndirectedWeightedGraph<Point, DefaultEdge> graph = new DefaultUndirectedWeightedGraph(DefaultEdge.class);
 
 		//Adding each sensor as a node
-		for(Sensor node : sensors){
+		for(Point node : path){
 			graph.addVertex(node);
 		}
 		
 		//Adding weighted edges
-		for(Sensor node : sensors) {
-			for(Sensor node2 : sensors) {
+		for(Point node : path) {
+			for(Point node2 : path) {
 				//We do not want any loops.
 				if(node.equals(node2)) continue;
 				//If straight line between points intersects a no-fly zone we assign edge weight infinity. 
@@ -80,8 +90,8 @@ public class Algorithm {
 				//Otherwise we just set the weight to the Euclidean distance between the nodes. 
 				else {
 					graph.addEdge(node, node2);
-					List<Double> pt1 = node.lnglat.coordinates();
-					List<Double> pt2 = node2.lnglat.coordinates();
+					List<Double> pt1 = node.coordinates();
+					List<Double> pt2 = node2.coordinates();
 					//Weight
 					double weight = Point2D.distance(pt1.get(0), pt1.get(1), pt2.get(0), pt2.get(1));
 					//Set weight
@@ -94,7 +104,7 @@ public class Algorithm {
 		return graph;
 	}
 	
-    public static boolean doesIntersect(ArrayList<Polygon> zones, Sensor sensor1, Sensor sensor2) {
+    public static boolean doesIntersect(ArrayList<Polygon> zones, Point node, Point node2) {
     	//Initialise the boolean.
     	boolean intersects = false;
     	//For each polygon in the no fly zones
@@ -102,8 +112,8 @@ public class Algorithm {
 	    	//This is the list of points within the given no fly zone. We get the 0 index because this gives us the outer co-ordinates of the zone. 
 	    	List<Point> corners = zone.coordinates().get(0);
 	    	//Get the longitude and latitude of the sensors
-	    	Point pt1 = sensor1.lnglat;
-	    	Point pt2 = sensor2.lnglat;
+	    	Point pt1 = node;
+	    	Point pt2 = node2;
 	    	//We want to make 2D points out of these to make the line segment. 
 	    	Point2D vertex1 = new Point2D.Double(pt1.longitude(), pt1.latitude());
 	    	Point2D vertex2 = new Point2D.Double(pt2.longitude(), pt2.latitude());
@@ -130,7 +140,7 @@ public class Algorithm {
      * Note that the sensor at index 0 does not necessarily mean we begin visiting this sensor. What we are interested about
      * with this list is the order it is in. Ie if we begin visiting path[i] then next we should visit path[i+1] then path[i+2]
      */
-	public GraphPath<Sensor, DefaultEdge> getPath(DefaultUndirectedWeightedGraph<Sensor, DefaultEdge> graph){
+	public GraphPath<Point, DefaultEdge> getPath(DefaultUndirectedWeightedGraph<Point, DefaultEdge> graph){
 		
 		//Run the 2-opt algorithm to get our path
 		var twoOpt = new TwoOptHeuristicTSP();
@@ -149,14 +159,14 @@ public class Algorithm {
 	 * Step 3 - This is the biggest step which involves us actually moving the drone around the map. 
 	 */
 	//This function finds the nearest sensor to the starting location to start our journey.
-	public int nearestSensor(Point startingLoc, List<Sensor> path) {
+	public int nearestSensor(Point startingLoc, List<Point> path) {
 		//Euclidean distances from each sensor to the starting position.
 		ArrayList<Double> distances = new ArrayList<>();
 		List<Double> pt1 = startingLoc.coordinates();
 		
 		//Find distance to each sensor. 
-		for(Sensor sensor : path) {
-			List<Double> pt2 = sensor.lnglat.coordinates();
+		for(Point sensor : path) {
+			List<Double> pt2 = sensor.coordinates();
 			double dist = Point2D.distance(pt1.get(0), pt1.get(1), pt2.get(0), pt2.get(1));
 			distances.add(dist);			
 		}
@@ -222,7 +232,7 @@ public class Algorithm {
 		}
 	}
 	//This function is responsible for moving the drone around the desired path by making small repetative moves. 
-	public void fly(List<Sensor> path) throws Exception {
+	public void fly(List<Point> path) throws Exception {
 		//This gives us the index of the sensor we should go to first. Because it is closest. 
 		int first_index = nearestSensor(drone.startingPosition, path);
 		int move_num = 0;
@@ -230,15 +240,15 @@ public class Algorithm {
 		String w3w = "";
 		//We want to loop through (and connect to) each sensor in the path. We do not necessarily start at path[0] so we use mod function.
 		//This loop is responsible for moving through every sensor. We do not make it out the loop without error otherwise. 
-		for(int i = 0; i < path.size(); i++) {
-			Sensor next_sensor = path.get((first_index + i) % (path.size()));
+		for(int i = 0; i <= path.size(); i++) {
+			Point next_sensor = path.get((first_index + i) % (path.size()));
 			
 			//These are the repetitive moving steps we make to get to the desired location. 
 			//We make these steps until we reach the location. 
 			while(!(drone.isConnected(next_sensor, drone.getPosition()))){
 				
 				//Get exact angle to the sensor
-				double angle = findAngle(drone.getPosition(), next_sensor.lnglat);
+				double angle = findAngle(drone.getPosition(), next_sensor);
 				//Round this to the nearest ten
 				double angle_nearest_ten = Math.round(angle/10.0)*10;
 				//Move at this angle
@@ -255,14 +265,18 @@ public class Algorithm {
 				
 				//Made a move
 				move_num+=1;
+				
+				//PROBLEM HERE WITH KNOWING IF NODE IS A DRONE. 
 				//After our move the drone may well be connected to a sensor. We must check this
 				boolean connected_now = drone.isConnected(next_sensor, drone.getPosition());
-				if(connected_now) {w3w = next_sensor.location;}
+				Sensor s = getSensor(next_sensor, this.sensors);
+				boolean b = s.lnglat.longitude() == 0.0;
+				if(connected_now & !b) {w3w = getSensor(next_sensor, this.sensors).location;}
 				else {w3w = "null";}
 				//Lets now add this to the flight path
 				drone.addFlightPath(move_num, prev_loc, angle_nearest_ten, curr_loc, w3w);
 				
-			}
+			}		
 		}
 	}	
 }

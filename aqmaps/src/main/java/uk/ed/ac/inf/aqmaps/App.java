@@ -43,26 +43,37 @@ public class App {
     	var maps = web.getMaps(path_maps); 	   	
     	var buildings = web.getBuiding();
     	
-    	//Step 3 - Create the array list of type sensor 
+    	//Step 3 - Create the array list of type sensor and corresponding list of sensor points. 
     	var sensors = App.getSensors(maps, web);
-    	//Step 4 - Create drone object with 150 moves and starting location specified in arguments 
     	int moves = 150;
     	var startingLoc = Point.fromLngLat(Double.parseDouble(args[4]), Double.parseDouble(args[3]));
     	var drone = new Drone(startingLoc, moves);
+    	ArrayList<Point> sensor_centers = new ArrayList<>();
+    	
+    	//Points of each sensor
+    	for(Sensor sensor : sensors) {
+    		sensor_centers.add(sensor.lnglat);
+    	}
+    	
+    	//Adds starting location
+    	sensor_centers.add(drone.startingPosition);
     	
     	//Step 5 - Call the algorithm class passing our drone in starting state and list of sensors to visit on given day. Step 5 includes all subproblems relating to the algorithm.
     	var algo = new Algorithm(drone, sensors, buildings);
     	//Step 5b - Create the weighted graph to find path. 
-    	DefaultUndirectedWeightedGraph<Sensor, DefaultEdge> graph = algo.makeGraph(sensors);
+    	DefaultUndirectedWeightedGraph<Point, DefaultEdge> graph = algo.makeGraph(sensor_centers);
     	//Step 5c - Get the order in which we will visit the sensors. 
-    	GraphPath<Sensor, DefaultEdge> gPath = algo.getPath(graph);
+    	GraphPath<Point, DefaultEdge> gPath = algo.getPath(graph);
     	var path = gPath.getVertexList();
     	//Step 5d - Call the algorithms move method which will move the drone around the maps connecting to nodes and returned at end state.
     	algo.fly(path); 
+    	for(String move : drone.getFlightLog()) {
+    		System.out.print(move);
+    	}
     	
     	//Step 6 - Use the sensors array plot the air quality readings of each sensor on our geojson mapping. 
     	//TODO
-    	
+
     	//Step 7 - Use the flight log in the drone at end of journey state to write 'flightpath.txt' 
     	//TODO    	       	    	
     	
@@ -84,7 +95,7 @@ public class App {
     	
     	
     
-    	for(Sensor sensor : path) {
+    	for(Sensor sensor : sensors) {
 
     		//We will plot this in the geojson.io it is the desired path 
     		//listPts.add(sensor.lnglat);    		

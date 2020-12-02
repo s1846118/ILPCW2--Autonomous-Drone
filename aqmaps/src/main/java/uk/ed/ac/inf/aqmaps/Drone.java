@@ -50,11 +50,15 @@ public class Drone {
 		return this.moves;
 	}
 	
+	public ArrayList<String> getFlightLog(){
+		return this.flightLog;
+	}
+	
 	//Move must be of 0.0003 degrees. Direction is an int since it must be a multiple of ten 
 	public void move(double direction) throws Exception {
 		
 		if(moves <= 0) {
-			//throw new Exception("Out of moves :(");
+			throw new Exception("Out of moves :(");
 		}
 		
 		//Current lng,lat
@@ -80,14 +84,14 @@ public class Drone {
 	}
 	
 	//This simple function tells us if we are connected to a sensor. 
-	public boolean isConnected(Sensor sensor, Point position) {
-		List<Double> pt1 = sensor.lnglat.coordinates();
+	public boolean isConnected(Point sensor, Point position) {
+		List<Double> pt1 = sensor.coordinates();
 		List<Double> pt2 = position.coordinates();
 		//Weight
 		double range = Point2D.distance(pt1.get(0), pt1.get(1), pt2.get(0), pt2.get(1));
 		
 		//Connected or not connected that is the question.
-		if(range <= 0.00002) {return true;}
+		if(range <= 0.00015) {return true;}
 		else {return false;}
 	}
 	
