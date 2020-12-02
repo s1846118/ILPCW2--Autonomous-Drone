@@ -83,6 +83,29 @@ public class Drone {
 		this.moves -=1;
 	}
 	
+	//This function is very similar to the move function but returns the point we will be moving to given we decide to make the move
+	public Point next_position(double direction){
+		
+		//Current lng,lat
+		double curr_lng = this.position.longitude();
+		double curr_lat = this.position.latitude();
+		//Change in lng and lat using basic trig. I have made this absolute value as a mathematical convinience :)
+		double lng_change = (Math.cos(Math.PI*direction/180))*0.0003;
+		double lat_change = (Math.sin(Math.PI*direction/180))*0.0003;
+		//lng and lat after move initialised 
+		double lng = 0;
+		double lat = 0;
+		
+		//Manage illegal arguments 
+		if(direction % 10 != 0 || direction < 0 || direction > 360) {
+			throw new IllegalArgumentException("Direction argument must be a multiple of 10 in the range 0 <= direction <= 350!");
+		}
+		lng = curr_lng + lng_change;
+		lat = curr_lat + lat_change;
+		//Change drone position
+		return Point.fromLngLat(lng, lat);
+	}
+	
 	//This simple function tells us if we are connected to a sensor. 
 	public boolean isConnected(Point sensor, Point position) {
 		List<Double> pt1 = sensor.coordinates();

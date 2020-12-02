@@ -254,6 +254,16 @@ public class Algorithm {
 				//Move at this angle
 				Point prev_loc = drone.getPosition();
 				
+				//Check if the move intersects with a no fly zone
+				Point potential_loc = drone.next_position(angle_nearest_ten);
+				
+				//We increase the angle at which we turn to avoid the no fly zone potentially?
+				while(doesIntersect(noFlyZones, prev_loc, potential_loc)){					
+					angle_nearest_ten = (angle_nearest_ten + 10) % 360;
+					//Check if the move intersects with a no fly zone
+					potential_loc = drone.next_position(angle_nearest_ten);
+				}
+				
 				//Adding to the testing line string to see our drones horrific path
 				droneLine.add(prev_loc);
 				

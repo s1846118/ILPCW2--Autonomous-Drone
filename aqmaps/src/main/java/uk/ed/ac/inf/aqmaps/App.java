@@ -240,7 +240,7 @@ public class App {
 
 
 		//Writing GeoJson formatted string into above file
-		FileWriter jsonWriter = new FileWriter("readings.geojson");
+		FileWriter jsonWriter = new FileWriter("readings.geojson", false);
 		jsonWriter.write(jsonString);
 		jsonWriter.close();	
 
