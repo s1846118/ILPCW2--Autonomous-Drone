@@ -55,10 +55,10 @@ public class Drone {
 	}
 	
 	//Move must be of 0.0003 degrees. Direction is an int since it must be a multiple of ten 
-	public void move(double direction) throws Exception {
+	public boolean move(double direction) throws Exception {
 		
 		if(moves <= 0) {
-			throw new Exception("Out of moves :(");
+			return false;
 		}
 		
 		//Current lng,lat
@@ -81,6 +81,8 @@ public class Drone {
 		this.position = Point.fromLngLat(lng, lat);
 		//This uses up one move. 
 		this.moves -=1;
+		
+		return true;
 	}
 	
 	//This function is very similar to the move function but returns the point we will be moving to given we decide to make the move

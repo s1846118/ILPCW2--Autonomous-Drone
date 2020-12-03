@@ -35,15 +35,45 @@ public class App {
 	
     public static void main( String[] args ) throws Exception{
     	
-    	//Step 1 - Make a WebServer object to connect to the local port.
+    	/*
+    	 * 
+    	 * Step 1 - Make a WebServer object to connect to the local port.
+    	 * 
+    	 */
     	WebServer web = new WebServer(Integer.parseInt(args[6]));
     	
-    	//Step 2 - Collect the relevant files. No fly zones and maps file for the given day. Reminder argument goes like "YEAR/MONTH/DAY/"
+    	/*
+    	 * 
+    	 * Step 2 - Collect the relevant files. No fly zones and maps file for the given day. Reminder argument goes like "YEAR/MONTH/DAY/"
+    	 * 
+    	 */
     	var path_maps = args[2] + "/" + args[1] + "/" + args[0] + "/";
     	var maps = web.getMaps(path_maps); 	   	
     	var buildings = web.getBuiding();
     	
-    	//Step 3 - Create the array list of type sensor and corresponding list of sensor points. 
+    	//Adds confinement area and make a polygon 
+    	List<Point> conf_pts = new ArrayList<>();
+    	conf_pts.add(northWest);
+    	conf_pts.add(northEast);
+    	conf_pts.add(southEast);
+    	conf_pts.add(southWest);
+    	
+    	List<List<Point>> conf_Lpts = new ArrayList<>();
+    	conf_Lpts.add(conf_pts);
+    	
+    	//Make the polygon
+    	Polygon confinment_area = Polygon.fromLngLats(conf_Lpts);
+    	
+    	//This is really long winded I know
+    	ArrayList<Polygon> confinment_area_list = new ArrayList<>();
+    	confinment_area_list.add(confinment_area);
+    	
+    	
+    	/*
+    	 * 
+    	 * Step 3 - Create the array list of type sensor and corresponding list of sensor points.
+    	 *  
+    	 */
     	var sensors = App.getSensors(maps, web);
     	int moves = 150;
     	var startingLoc = Point.fromLngLat(Double.parseDouble(args[4]), Double.parseDouble(args[3]));
@@ -58,8 +88,14 @@ public class App {
     	//Adds starting location
     	sensor_centers.add(drone.startingPosition);
     	
-    	//Step 5 - Call the algorithm class passing our drone in starting state and list of sensors to visit on given day. Step 5 includes all subproblems relating to the algorithm.
-    	var algo = new Algorithm(drone, sensors, buildings);
+    	/*
+    	 * 
+    	 * Step 5 - Call the algorithm class passing our drone in starting state and list of sensors to visit on given day. 
+    	 * Step 5 includes all subproblems relating to the algorithm. Ie (5b,5c,...)
+    	 * 
+    	 */
+    	//Creating the algorithm object
+    	var algo = new Algorithm(drone, sensors, buildings, confinment_area_list);
     	//Step 5b - Create the weighted graph to find path. 
     	DefaultUndirectedWeightedGraph<Point, DefaultEdge> graph = algo.makeGraph(sensor_centers);
     	//Step 5c - Get the order in which we will visit the sensors. 
@@ -67,15 +103,26 @@ public class App {
     	var path = gPath.getVertexList();
     	//Step 5d - Call the algorithms move method which will move the drone around the maps connecting to nodes and returned at end state.
     	algo.fly(path); 
-    	for(String move : drone.getFlightLog()) {
-    		System.out.print(move);
-    	}
     	
     	//Step 6 - Use the sensors array plot the air quality readings of each sensor on our geojson mapping. 
     	//TODO
 
-    	//Step 7 - Use the flight log in the drone at end of journey state to write 'flightpath.txt' 
-    	//TODO    	       	    	
+    	/*
+    	 * 
+    	 * Step 7 - Use the flight log in the drone at end of journey state to write 'flightpath.txt'
+    	 *  
+    	 */
+		//Creating our flightpath.txt file. Standard steps for creating a new file 
+    	String fileName = "flightpath" + "-" + args[0] + "-" + args[1] + "-" + args[2] + "" + ".txt";
+		File txtFile = new File(fileName);
+		txtFile.createNewFile();
+		FileWriter txtWriter = new FileWriter(fileName, false);
+    	
+		//For each move we create a new line and add it to the txt file. 
+    	for(String move : drone.getFlightLog()) {
+    		txtWriter.write(move);
+    	} 
+		txtWriter.close();
     	
     	//Make geojson string out of this...
     	

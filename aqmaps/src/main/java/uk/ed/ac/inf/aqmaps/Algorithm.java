@@ -30,13 +30,15 @@ public class Algorithm {
 	//Drone for measuring aq sensors and list of sensors we want to visit
 	private ArrayList<Sensor> sensors;
 	private ArrayList<Polygon> noFlyZones;
+	private ArrayList<Polygon> confinmentArea;
 	public Drone drone;
 	public List<Point> droneLine = new ArrayList<Point>();;
 	
-	public Algorithm(Drone drone, ArrayList<Sensor> sensors, ArrayList<Polygon> noFlyZone) {
+	public Algorithm(Drone drone, ArrayList<Sensor> sensors, ArrayList<Polygon> noFlyZone, ArrayList<Polygon> confinmentArea) {
 		this.sensors = sensors;
 		this.noFlyZones = noFlyZone;
 		this.drone = drone;
+		this.confinmentArea = confinmentArea;
 	}
 	
 	//Below we define getters for all of our needed global variables
@@ -82,11 +84,14 @@ public class Algorithm {
 			for(Point node2 : path) {
 				//We do not want any loops.
 				if(node.equals(node2)) continue;
+
+				
 				//If straight line between points intersects a no-fly zone we assign edge weight infinity. 
 				else if(doesIntersect(noFlyZones, node, node2)) {
 					graph.addEdge(node, node2);
 					graph.setEdgeWeight(node, node2, Double.POSITIVE_INFINITY);
 				}
+
 				//Otherwise we just set the weight to the Euclidean distance between the nodes. 
 				else {
 					graph.addEdge(node, node2);
@@ -259,7 +264,15 @@ public class Algorithm {
 				
 				//We increase the angle at which we turn to avoid the no fly zone potentially?
 				while(doesIntersect(noFlyZones, prev_loc, potential_loc)){					
-					angle_nearest_ten = (angle_nearest_ten + 10) % 360;
+					angle_nearest_ten = Math.round(((angle_nearest_ten + 10) % 350)/10.0)*10;
+					//Check if the move intersects with a no fly zone
+					potential_loc = drone.next_position(angle_nearest_ten);
+				}
+				
+				//We do the same process to if we are are about to go outside confinement are
+				while(doesIntersect(confinmentArea, prev_loc, potential_loc)){	
+					System.out.println(1);
+					angle_nearest_ten = Math.round(((angle_nearest_ten + 10) % 350)/10.0)*10;;
 					//Check if the move intersects with a no fly zone
 					potential_loc = drone.next_position(angle_nearest_ten);
 				}
@@ -267,7 +280,11 @@ public class Algorithm {
 				//Adding to the testing line string to see our drones horrific path
 				droneLine.add(prev_loc);
 				
-				drone.move(angle_nearest_ten);
+				//Makes the move if enough moves and breaks otherwise
+				if(!drone.move(angle_nearest_ten)){
+					System.out.println("Out of moves!!");
+					break;
+				}
 				Point curr_loc = drone.getPosition();
 				
 				//Adding to line string for testing
